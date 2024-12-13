@@ -5,53 +5,448 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ReadTheSource - Try Exploit Me</title>
     <style>
+        :root {
+            --color-canvas-default: #0d1117;
+            --color-canvas-subtle: #161b22;
+            --color-header-bg: #010409;
+            --color-fg-default: #c9d1d9;
+            --color-fg-muted: #8b949e;
+            --color-accent-fg: #58a6ff;
+            --color-accent-emphasis: #1f6feb;
+            --color-border-default: #30363d;
+            --color-border-muted: #21262d;
+            --color-neutral-muted: rgba(110,118,129,0.4);
+            --font-sf: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", sans-serif;
+            --font-sf-mono: "SF Mono", SFMono-Regular, ui-monospace, "Cascadia Mono", Menlo, Monaco, "Segoe UI Mono", monospace;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: var(--font-sf);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f9;
-            color: #333;
-            line-height: 1.6;
+            background-color: var(--color-canvas-default);
+            color: var(--color-fg-default);
+            line-height: 1.5;
+            font-size: 14px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
         }
+
         header {
-            background: #444;
-            color: #fff;
-            padding: 1rem 0;
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
         }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .org-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+        }
+
+        .org-name {
+            font-family: var(--font-sf);
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--color-fg-default);
+            text-decoration: none;
+        }
+
+        .org-name:hover {
+            color: var(--color-accent-fg);
+        }
+
+        .header-content {
+            text-align: right;
+        }
+
+        header h1 {
+            color: var(--color-fg-default);
+            font-weight: 500;
+            margin: 0;
+            font-size: 20px;
+            font-family: var(--font-sf);
+            font-weight: 500;
+            letter-spacing: -0.02em;
+        }
+
+        header p {
+            color: var(--color-fg-muted);
+            margin: 0;
+            font-size: 12px;
+            font-family: var(--font-sf);
+            letter-spacing: -0.003em;
+        }
+
         .container {
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
+            padding: 24px;
+            max-width: 100%;
+            margin-top: 80px;
         }
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            padding: 10px 0;
-            background: #444;
-            color: #fff;
+
+        p {
+            margin-bottom: 16px;
+        }
+
+        strong {
+            font-weight: 600;
+            color: var(--color-fg-default);
+        }
+
+        a {
+            color: var(--color-accent-fg);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .gist-container {
+            background-color: var(--color-canvas-subtle);
+            border: 1px solid var(--color-border-muted);
+            border-radius: 6px;
+            margin-top: 16px;
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .gist {
+            filter: invert(90%) hue-rotate(180deg);
+        }
+
+        .gist-cards {
+            position: relative;
+            margin: 0 auto;
+            padding: 40px;
+            min-height: 600px;
+        }
+
+        .gist-card {
+            position: absolute;
+            width: 320px;
+            transform-origin: center;
+            border: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1;
+            padding: 16px;
+        }
+
+        .gist-card:nth-child(1) {
+            top: 15%;
+            left: 25%;
+            transform: rotate(-3deg);
+        }
+
+        .gist-card:nth-child(2) {
+            top: 25%;
+            right: 25%;
+            transform: rotate(2deg);
+        }
+
+        .gist-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 6px;
+            border: 2px solid var(--color-accent-fg);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 0 20px rgba(88, 166, 255, 0.2);
+        }
+
+        .gist-card:hover {
+            transform: translateY(-10px) rotate(0deg) !important;
+            z-index: 2;
+        }
+
+        .gist-card:hover::before {
+            opacity: 1;
+        }
+
+        .gist-preview {
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .gist-preview::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(transparent, var(--color-canvas-default));
+        }
+
+        .gist-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--color-fg-default);
+            font-family: var(--font-sf);
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+        }
+
+        .gist-description {
+            font-size: 14px;
+            color: var(--color-fg-muted);
+            margin-bottom: 16px;
+            font-family: var(--font-sf);
+            font-size: 13px;
+            letter-spacing: -0.003em;
+            line-height: 1.4;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            padding: 32px;
+            overflow-y: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .modal::-webkit-scrollbar {
+            display: none;
+        }
+
+        .modal-content {
+            background: var(--color-canvas-subtle);
+            border-radius: 6px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--color-border-muted);
+        }
+
+        .modal-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-content .code-type {
+            position: static;
+            padding: 4px 8px;
+            background: var(--color-canvas-default);
+            border-radius: 4px;
+            border: 1px solid var(--color-border-muted);
+        }
+
+        .modal-content .gist-description {
+            margin: 8px 0 12px;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--color-fg-muted);
+            cursor: pointer;
+            font-size: 24px;
+            padding: 4px 8px;
+        }
+
+        .close-button:hover {
+            color: var(--color-fg-default);
+        }
+
+        @media (max-width: 1200px) {
+            .gist-cards {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 30px;
+            }
+
+            .gist-card {
+                position: relative !important;
+                top: unset !important;
+                left: unset !important;
+                right: unset !important;
+                transform: none !important;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        * {
+            scrollbar-width: none;
+        }
+
+        * {
+            -ms-overflow-style: none;
+        }
+
+        .code-type {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            color: var(--color-fg-muted);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            pointer-events: none;
+            font-family: var(--font-sf-mono);
+            font-size: 11px;
+            letter-spacing: 0;
+        }
+
+        .code-type img {
+            width: 14px;
+            height: 14px;
+            object-fit: contain;
+            opacity: 0.8;
+        }
+
+        .card-header {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .code-type:hover {
+            transform: none;
+            box-shadow: none;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>ReadTheSource</h1>
-        <p>A CTF-like challenge by Try Exploit Me</p>
+        <div class="header-left">
+            <a href="https://github.com/tryhaqme" target="_blank">
+                <img src="https://avatars.githubusercontent.com/u/189999060?s=200&v=4" alt="TryHaqMe" class="org-logo">
+            </a>
+            <a href="https://github.com/tryhaqme" target="_blank" class="org-name" style="color: var(--color-fg-default); text-decoration: none;">Try Exploit Me (tryhaqme)</a>
+        </div>
+        <div class="header-content">
+            <h1><a href="https://github.com/tryhaqme/ReadTheSource" target="_blank" style="color: var(--color-fg-default); text-decoration: none;">ReadTheSource</a></h1>            
+            <p>Explore vulnerable source code. Learn. Hack!</p>
+        </div>
     </header>
     <div class="container">
-        <p>
-            <strong>ReadTheSource</strong> is a CTF-like challenge where you can explore and analyze the source code of vulnerable applications. 
-            It provides a great opportunity to practice and enhance your skills in reading and understanding source code vulnerabilities.
-        </p>
-        <p>
-            Embedded below is the source code repository where you can start your journey:
-        </p>
-        <div>
+        <div class="gist-cards">
+            <!-- card 1 -->
+            <div class="gist-card" onclick="showGist('gist1')">
+                <div class="card-header">
+                    <div class="gist-title">Simple Search Feature</div>
+                    <div class="code-type">
+                        <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" alt="Python">
+                        flask.py
+                    </div>
+                </div>
+                <div class="gist-description">How many vulnerabilities can you spot in this small code snippet? 🧐</div>
+                <div class="gist-preview">
+                    <script src="https://gist.github.com/1hehaq/55dda02da7590d117ea896b87bf29195.js"></script>
+                </div>
+            </div>
+            
+            <!-- card 2 -->
+            <div class="gist-card" onclick="showGist('gist2')">
+                <div class="gist-title">Simple Search Feature</div>
+                <div class="code-type">
+                    <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/javascript/javascript-original.svg" alt="JavaScript">
+                    app.js
+                </div>
+                <div class="gist-description">Is the following code snippet vulnerable? 🤔</div>
+                <div class="gist-preview">
+                    <script src="https://gist.github.com/1hehaq/72c8bf4d1fa5146d43a4cfbcb2f87948.js"></script>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- modules -->
+    <div id="gist1Modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <div class="code-type">
+                        <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" alt="Python">
+                        flask.py
+                    </div>
+                    <div class="gist-description">How many vulnerabilities can you spot in this small code snippet? <span class="emoji">🧐</span></div>
+                </div>
+                <button class="close-button" onclick="hideGist('gist1')">&times;</button>
+            </div>
             <script src="https://gist.github.com/1hehaq/55dda02da7590d117ea896b87bf29195.js"></script>
         </div>
     </div>
-    <footer>
-        &copy; 2024 Try Exploit Me
-    </footer>
+
+    <div id="gist2Modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <div class="code-type">
+                        <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/javascript/javascript-original.svg" alt="JavaScript">
+                        app.js
+                    </div>
+                    <div class="gist-description">Is the following code snippet vulnerable? <span class="emoji">🤔</span></div>
+                </div>
+                <button class="close-button" onclick="hideGist('gist2')">&times;</button>
+            </div>
+            <script src="https://gist.github.com/1hehaq/72c8bf4d1fa5146d43a4cfbcb2f87948.js"></script>
+        </div>
+    </div>
+
+    <!-- modulss fuctinality -->
+    <script>
+        function showGist(gistId) {
+            document.getElementById(gistId + 'Modal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideGist(gistId) {
+            document.getElementById(gistId + 'Modal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        }
+    </script>
 </body>
 </html>
